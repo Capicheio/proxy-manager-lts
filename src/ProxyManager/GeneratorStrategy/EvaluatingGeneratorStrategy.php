@@ -51,6 +51,17 @@ class EvaluatingGeneratorStrategy implements GeneratorStrategyInterface
 
         // @codeCoverageIgnoreEnd
 
+        /* Handling of issue "Cannot use float as default value for parameter $timestampBegin of type int"
+           during eval of `DateTimeZone::getTransitions` where -9223372036854775808 and 9223372036854775807
+           are being treated as `float` instead of `int` */
+        if (strpos($code ?? '', '$timestampBegin'))
+        {
+            $code = str_replace(
+                'public function getTransitions(int $timestampBegin = -9223372036854775808, int $timestampEnd = 9223372036854775807)',
+                'public function getTransitions(int $timestampBegin = PHP_INT_MIN, int $timestampEnd = PHP_INT_MAX)',
+                $code);
+        }
+
         eval($code);
 
         return $code;
